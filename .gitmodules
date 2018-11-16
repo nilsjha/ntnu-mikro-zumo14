@@ -1,3 +1,3 @@
 [submodule "zumo-shield-arduino-library"]
-	path = zumo-shield-arduino-library
+	path = lib/zumo-shield-arduino-library
 	url = https://github.com/pololu/zumo-shield-arduino-library
