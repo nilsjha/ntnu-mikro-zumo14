@@ -1,6 +1,10 @@
+/*
+borderDetect() - reads all the edge sensors and stores the sensor state in an array. 
+*/
 #include <Wire.h>
 #include <ZumoShield.h>
 
+#define S_BD_CLEAR 100
 #define S_BD_LEFT 101
 #define S_BD_RIGHT 102
 #define S_BD_CENTER 103
@@ -14,9 +18,8 @@ ZumoReflectanceSensorArray sensors(QTR_NO_EMITTER_PIN);
 ZumoBuzzer buzzer;
 bool DEBUG = true;
 
-/*
-borderDetect() - reads all the edge sensors and stores the sensor state in an array. 
-*/
+int borderdirection = S_BD_CLEAR;			// start with clear border-state
+
 void borderDetect() {
 	sensors.read(sensor_values);
 	for(int i = 0; i <NUM_SENSORS; i++) {
@@ -47,17 +50,37 @@ void borderDetect() {
 		// LLLXRR
 		bdArrayStatus[3] = 1;
 	}
+
+	if (bdArrayStatus[0] == 1 || bdArrayStatus[1] == 1) {
+		borderdirection = S_BD_LEFT; 
+	}
+	else if(bdArrayStatus[4] == 0 || bdArrayStatus[5] == 1) {
+		borderdirection = S_BD_RIGHT;
+	}
+	else if (bdArrayStatus[0] == 1 && bdArrayStatus[1] == 0 && bdArrayStatus[4] == 0 &&  bdArrayStatus[5] == 1) {
+		borderdirection = S_BD_CENTER;
+	}
+	else if (bdArrayStatus[0] == 0 && bdArrayStatus[5] == 0) {
+		borderdirection = S_BD_CLEAR;
+	}
 }
 void borderAction(int borderdirection) {
 	switch (borderdirection)
 	{
 		case S_BD_LEFT:
+		// what happens if the border is on the left
 		break;
 
 		case S_BD_RIGHT: 
+		// what happens if the border is on the right
 		break;
 
 		case S_BD_CENTER:
+		// what happens if the boarder is on both sides
+		break;
+		
+		case S_BD_CLEAR:
+		// default state and case - no boarder = coast is clear!
 		break;
 
 		default:;
@@ -67,7 +90,7 @@ void borderAction(int borderdirection) {
 
 void setup()
 {
-	Serial.begin(9600);
+	Serial.begin(115200);
 
 }
 
