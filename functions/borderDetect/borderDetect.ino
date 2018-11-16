@@ -16,7 +16,8 @@ int bdArrayStatus[NUM_SENSORS];
 unsigned int sensor_values[NUM_SENSORS];
 ZumoReflectanceSensorArray sensors(QTR_NO_EMITTER_PIN);
 ZumoBuzzer buzzer;
-bool DEBUG = true;
+bool DEBUG = true;					// enable debug to serial terminal
+int debugdelay = 500;
 
 int borderdirection = S_BD_CLEAR;			// start with clear border-state
 
@@ -64,7 +65,7 @@ void borderDetect() {
 		borderdirection = S_BD_CLEAR;
 	}
 }
-void borderAction(int borderdirection) {
+void borderAction() {
 	switch (borderdirection)
 	{
 		case S_BD_LEFT:
@@ -85,12 +86,17 @@ void borderAction(int borderdirection) {
 
 		default:;
 	}
+	if (DEBUG == true) {
+		Serial.print("Borderstate: ");
+		Serial.println(borderdirection);
+		delay(debugdelay);
+	}
 }
 
 
 void setup()
 {
-	Serial.begin(115200);
+	Serial.begin(9600);
 
 }
 
@@ -107,5 +113,7 @@ void loop()
 			Serial.println(sensor_values[i]);
 		}
 		Serial.println();
+		delay(debugdelay);
 	}
+	borderAction();
 }
