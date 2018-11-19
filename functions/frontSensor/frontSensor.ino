@@ -1,6 +1,6 @@
 const int FRONT_SENS_PIN = A0;
 const double FRONT_SENS_THRESHOLD = 20;
-bool DEBUG = false;
+bool DEBUG = true;
 const int  DEBUG_DELAY = 500;
 bool enemyDetected = false;
 
