@@ -56,7 +56,7 @@ const int  DEBUG_DELAY = 500;
 
 // The function to push the ramp down before fight     
 int moveRamp(int setPos)	{
-	delay(2000);
+	//delay(2000);
 	myservo.write(setPos);
 	digitalWrite(13,LOW);
 
@@ -118,8 +118,6 @@ bool frontSensor() {
                 Serial.print(infraDistance);
                 Serial.print(" = threshold value: ");
                 Serial.println(FRONT_SENS_THRESHOLD);
-                delay(DEBUG_DELAY);
-                    
         }   
         if( infraDistance < FRONT_SENS_THRESHOLD ) { 
                 return true;
@@ -191,7 +189,7 @@ bool isTimerExpired() {
 void setup(){
         if(DEBUG == true) {
                 pinMode(13,OUTPUT);
-                Serial.begin(9600);
+                Serial.begin(115200);
 		Serial.print("Welcome! Debug mode ON, delay is ");
 		Serial.println(DEBUG_DELAY);
 		delay(DEBUG_DELAY);
