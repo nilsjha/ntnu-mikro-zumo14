@@ -7,7 +7,7 @@
 
 //all variables
 //Startbutton
-int buttonPin = 12;
+int buttonPin = 12; 
 //Servoknockdown
 Servo myservo;                            //create a servo object
 int servoPosition = 90;                        //the servo will move to this position
@@ -18,19 +18,22 @@ ZumoMotors motors;
 #define FORWARD_SPEED 400
 #define TURN_SPEED 400
 #define REVERSE_SPEED  400
+#define QTR_THRESHOLD  1500
 
-unsigned long turnDuration = 5000; //TBD
-unsigned long reverseDuration = 5000; //TBD
+unsigned long turnDuration = 300; //TBD
+unsigned long reverseDuration = 200; //TBD
 
 //Switch case variables
 const int START_PHASE = 1;
 const int ATTACK_PHASE = 2;
 const int SEARCH_PHASE = 3;
 
-
 const int S_SEEK_LEFT = 201;
-const int S_SEEK_RIGHT = 202;
-int seekState = S_SEEK_LEFT;
+const int S_SEEK_S_LEFT = 202;
+const int S_SEEK_RIGHT = 203;
+const int S_SEEK_S_RIGHT = 204;
+int seekState = S_SEEK_S_LEFT;
+
 
 Pushbutton button(ZUMO_BUTTON);
 
@@ -38,8 +41,8 @@ int state = START_PHASE;
 unsigned long nextTimeout = 0;
 
 // Front IR-sensor
-const int FRONT_SENS_PIN = A0;			//removed trace from center bordersensor 
-const double FRONT_SENS_THRESHOLD = 20; 
+const int FRONT_SENS_PIN = A0;                  //removed trace from center bordersensor 
+const double FRONT_SENS_THRESHOLD = 30; 
 bool enemyDetected = false;
 
 // Border-sensor
@@ -59,8 +62,9 @@ bool DEBUG = true;
 const int  DEBUG_DELAY = 500;
 
 
+
 // The function to push the ramp down before fight     
-int moveRamp(int setPos)	{
+int moveRamp(int setPos)        {
 	//delay(2000);
 	myservo.write(setPos);
 	digitalWrite(13,LOW);
@@ -79,13 +83,11 @@ int runMotors(int Direction) {
 
 		case 2:
 
-			motors.setSpeeds(TURN_SPEED, -TURN_SPEED); //swing right
-			delay(turnDuration);
+			motors.setSpeeds(-200, 200); //swing right
 			break;
 
 		case 3:
-			motors.setSpeeds(-TURN_SPEED, TURN_SPEED); //swing left
-			delay(turnDuration);   
+			motors.setSpeeds(400, -400); //swing left
 			break;
 
 		case 4:
@@ -106,76 +108,50 @@ int runMotors(int Direction) {
 			delay(turnDuration);
 			motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
 	}
-        if(DEBUG == true) {
+	if(DEBUG == true) {
 		Serial.print(" DEBUG: Motor-state:");
 		Serial.println(Direction);
 	}
 }
 
 bool frontSensor() {
-        int infraValue = analogRead(FRONT_SENS_PIN);
-        double infraDistance = 187754 * pow(infraValue, -1.51);
+	int infraValue = analogRead(FRONT_SENS_PIN);
+	double infraDistance = 187754 * pow(infraValue, -1.51);
 
-        if(DEBUG == true) {
-                Serial.print(" DEBUG:FRONTSENSOR:Reading raw value: ");
-                Serial.print(infraValue);
-                Serial.print(" = converted value: ");
-                Serial.print(infraDistance);
-                Serial.print(" = threshold value: ");
-                Serial.println(FRONT_SENS_THRESHOLD);
-        }   
-        if( infraDistance < FRONT_SENS_THRESHOLD ) { 
-                return true;
-        } else {
-                return false;
-        }   
+	if(DEBUG == true) {
+		Serial.print(" DEBUG:FRONTSENSOR:Reading raw value: ");
+		Serial.print(infraValue);
+		Serial.print(" = converted value: ");
+		Serial.print(infraDistance);
+		Serial.print(" = threshold value: ");
+		Serial.println(FRONT_SENS_THRESHOLD);
+	}   
+	if( infraDistance < FRONT_SENS_THRESHOLD ) { 
+		return true;
+	} else {
+		return false;
+	}   
 
 }
+void borderDetect(){
+	sensors.read(sensor_values);
 
-
-void borderDetect() {
-        sensors.read(sensor_values);
-        for(int i = 0; i <NUM_SENSORS; i++) {
-                bdArrayStatus[i] = 0;
-        }
-
-        if (sensor_values[0] < BD_THRESHOLD) {
-                // XLLRRR
-                bdArrayStatus[0] = 1;
-        }
-        if (sensor_values[5] < BD_THRESHOLD) {
-                // LLLRRX
-                bdArrayStatus[5] = 1;
-        }
-        if (sensor_values[1] < BD_THRESHOLD) {
-                // LXLRRR
-                bdArrayStatus[1] = 1;
-        }
-        if (sensor_values[4] < BD_THRESHOLD) {
-                // LLLRXR
-                bdArrayStatus[4] = 1;
-        }
-        if (sensor_values[2] < BD_THRESHOLD) {
-                // LLXRRR
-                bdArrayStatus[2] = 1;
-        }
-        if (sensor_values[3] < BD_THRESHOLD) {
-                // LLLXRR
-                bdArrayStatus[3] = 1;
-        }
-
-        if (bdArrayStatus[0] == 1 || bdArrayStatus[1] == 1) {
-                borderdirection = S_BD_LEFT;
-        }
-        else if(bdArrayStatus[4] == 1 || bdArrayStatus[5] == 1) {
-                borderdirection = S_BD_RIGHT;
-        }
-        else if (bdArrayStatus[0] == 0 && bdArrayStatus[5] == 0) {
-                borderdirection = S_BD_CLEAR;
-        }
+	if (sensor_values[0] < QTR_THRESHOLD)
+	{
+		// if leftmost sensor detects line, reverse and turn to the right
+		runMotors(4);
+	}
+	else if (sensor_values[5] < QTR_THRESHOLD)
+	{
+		// if rightmost sensor detects line, reverse and turn to the left
+		runMotors(5);
+	}
+	else
+	{
+		// otherwise, go straight
+		// runMotors(FORWARD_SPEED, FORWARD_SPEED);
+	}
 }
-
-
 
 
 void startTimer(unsigned long timeout) {
@@ -192,40 +168,65 @@ bool isTimerExpired() {
 }
 
 void seekTurn() {
+	int seekIntervalLeft = 400;
+	int seekIntervalRight= 200;
+	switch(seekState) {
+		case S_SEEK_S_LEFT:
+			if(isTimerExpired()) {
+				seekState = S_SEEK_RIGHT;
+				startTimer(seekIntervalRight);
+				break;
+			}
+			else {
+				runMotors(2);
+				if (DEBUG == true) {Serial.println(" DEBUG: SLOW LEFT");}
+				break;
+			}
 
-  		switch(seekState) {
-            case S_SEEK_LEFT:
-            if(isTimerExpired()) {
-              seekState = S_SEEK_RIGHT;
-              startTimer(2000);
-              break;
-            }
-            else {
-              runMotors(2);
-              break;
-            }
+		case S_SEEK_S_RIGHT:
+			if(isTimerExpired()) {
+				seekState = S_SEEK_LEFT;
+				startTimer(120);
+				break;
+			}
+			else {
+				runMotors(3);
+				if (DEBUG == true) {Serial.println(" DEBUG: SLOW RIGHT");}
+				break;
+			}
+		case S_SEEK_LEFT:
+			if(isTimerExpired()) {
+				seekState = S_SEEK_RIGHT;
+				startTimer(100);
+				break;
+			}
+			else {
+				runMotors(2);
+				if (DEBUG == true) {Serial.println(" DEBUG: SEEK LEFT");}
+				break;
+			}
 
-          case S_SEEK_RIGHT:
-             if(isTimerExpired()) {
-              seekState = S_SEEK_LEFT;
-              startTimer(2000);
-              break;
-             }
-            else {
-              runMotors(3);
-              break;
-            }
-        }
+		case S_SEEK_RIGHT:
+			if(isTimerExpired()) {
+				seekState = S_SEEK_LEFT;
+				startTimer(seekIntervalLeft);
+				break;
+			}
+			else {
+				runMotors(3);
+				if (DEBUG == true) {Serial.println(" DEBUG: SEEK RIGHT");}
+				break;
+			}
+	}
 }
-
 void setup(){
-        if(DEBUG == true) {
-                pinMode(13,OUTPUT);
-                Serial.begin(115200);
+	if(DEBUG == true) {
+		pinMode(13,OUTPUT);
+		Serial.begin(115200);
 		Serial.print("Welcome! Debug mode ON, delay is ");
 		Serial.println(DEBUG_DELAY);
 		delay(DEBUG_DELAY);
-        }   
+	}
 	// startbutton
 	pinMode(buttonPin, INPUT);
 	//servo
@@ -233,7 +234,6 @@ void setup(){
 	myservo.write(servoPosition = 20);
 
 }
-
 void loop(){
 
 	switch (state){
@@ -243,8 +243,8 @@ void loop(){
 			/*startbutton
 			 * Moveramp
 			 * delay
-			 * music    */    
-			if (button.isPressed()){ 
+			 * music    */
+			if (button.isPressed()){
 				digitalWrite(13,HIGH);
 				if (DEBUG == true) {Serial.println(" DEBUG: Button pressed!");}
 				delay(5000);
@@ -264,11 +264,13 @@ void loop(){
 			 *  
 			 */
 			if (DEBUG == true) {Serial.println(" DEBUG:Attack!");}
-			runMotors(1);
+			//runMotors(1);
 			if(isTimerExpired()) {
 				state = SEARCH_PHASE;
 			}
 			else {
+				borderDetect();
+				seekState = S_SEEK_S_LEFT;
 				runMotors(1);
 			}
 			break;
@@ -288,20 +290,20 @@ void loop(){
 			switch (borderdirection)
 			{
 				case S_BD_LEFT:
-				// what happens if the border is on the left
-				if (DEBUG == true) {Serial.println(" DEBUG: Border LEFT");}
-				runMotors(4);
-				break;
+					// what happens if the border is on the left
+					if (DEBUG == true) {Serial.println(" DEBUG: Border LEFT");}
+					runMotors(4);
+					break;
 
 				case S_BD_RIGHT:
-				// what happens if the border is on the right
-				if (DEBUG == true) {Serial.println(" DEBUG: Border RIGHT");}
-				runMotors(5);
-				break;
+					// what happens if the border is on the right
+					if (DEBUG == true) {Serial.println(" DEBUG: Border RIGHT");}
+					runMotors(5);
+					break;
 
 				case S_BD_CLEAR:
-				// default state and case - no boarder = coast is clear!
-				break;
+					// default state and case - no border = coast is clear!
+					break;
 			}
 			seekTurn();
 
@@ -316,13 +318,16 @@ void loop(){
 			 * if true = changestate to attack
 			 */
 
-			break; 
+			break;
 
-		default:;
-		if (DEBUG == true) {
-			Serial.print("DEBUG: ");
-			Serial.print("State is undefined!:");
-		}
+		default:
+			if (DEBUG == true) {
+				Serial.print("DEBUG: ");
+				Serial.print("State is undefined!:");
+			}
+			seekTurn();
 
 	}
 }
+
+
