@@ -27,6 +27,11 @@ const int START_PHASE = 1;
 const int ATTACK_PHASE = 2;
 const int SEARCH_PHASE = 3;
 
+
+const int S_SEEK_LEFT = 201;
+const int S_SEEK_RIGHT = 202;
+int seekState = S_SEEK_LEFT;
+
 Pushbutton button(ZUMO_BUTTON);
 
 int state = START_PHASE;
@@ -186,6 +191,33 @@ bool isTimerExpired() {
 	return statement;
 }
 
+void seekTurn() {
+
+  		switch(seekState) {
+            case S_SEEK_LEFT:
+            if(isTimerExpired()) {
+              seekState = S_SEEK_RIGHT;
+              startTimer(2000);
+              break;
+            }
+            else {
+              runMotors(2);
+              break;
+            }
+
+          case S_SEEK_RIGHT:
+             if(isTimerExpired()) {
+              seekState = S_SEEK_LEFT;
+              startTimer(2000);
+              break;
+             }
+            else {
+              runMotors(3);
+              break;
+            }
+        }
+}
+
 void setup(){
         if(DEBUG == true) {
                 pinMode(13,OUTPUT);
@@ -271,6 +303,7 @@ void loop(){
 				// default state and case - no boarder = coast is clear!
 				break;
 			}
+			seekTurn();
 
 			if (DEBUG == true) {
 				Serial.print("Borderstate: ");
