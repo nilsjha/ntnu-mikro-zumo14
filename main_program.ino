@@ -39,6 +39,7 @@ Pushbutton button(ZUMO_BUTTON);
 
 int state = START_PHASE;
 unsigned long nextTimeout = 0;
+unsigned long nextSeekTimeout = 0;
 
 // Front IR-sensor
 const int FRONT_SENS_PIN = A0;                  //removed trace from center bordersensor 
@@ -52,6 +53,8 @@ bool enemyDetected = false;
 int bdArrayStatus[NUM_SENSORS];
 unsigned int sensor_values[NUM_SENSORS];
 ZumoReflectanceSensorArray sensors(QTR_NO_EMITTER_PIN);
+
+int numberOfswings = 0;
 
 bool DEBUG = true;
 const int  DEBUG_DELAY = 500;
@@ -78,11 +81,11 @@ void runMotors(int Direction) {
 
 		case 2:
 
-			 motors.setSpeeds(-200, 200); //swing right
+			motors.setSpeeds(-300, 300); //swing right
 			break;
 
 		case 3:
-			motors.setSpeeds(200, -200); //swing left
+			motors.setSpeeds(300, -300); //swing left
 			break;
 
 		case 4:
@@ -105,8 +108,8 @@ void runMotors(int Direction) {
 			motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
 			break;
 		case 6:
-			  motors.setSpeeds(0,0); // STOP
-			  break;
+			motors.setSpeeds(0,0); // STOP
+			break;
 
 
 	}
@@ -171,21 +174,34 @@ bool isTimerExpired() {
 	return statement;
 }
 
+void startSeekTimer(unsigned long timeout) {
+	nextSeekTimeout = millis() + timeout;
+}
+bool isSeekTimerExpired() {
+	bool statement;
+	if (nextSeekTimeout<millis()) {
+		statement = true;
+	} else {
+		statement = false;
+	}
+	return statement;
+}
 void seekTurn() {
-	int seekIntervalLeft = 400;
-	int seekIntervalRight = 400;
-	int seekIntervalLeftSlow = 150;
-	int seekIntervalRightSlow = 150;
+	int seekIntervalLeft = 450;
+	int seekIntervalRight = 450;
+	int seekIntervalLeftSlow = 100;
+	int seekIntervalRightSlow = 100;
 	switch(seekState) {
 		case S_SEEK_S_LEFT:
 			if(isTimerExpired()) {
-				seekState = S_SEEK_RIGHT;
+				seekState = S_SEEK_S_RIGHT;
 				startTimer(seekIntervalRight);
 				break;
 			}
 			else {
 				runMotors(2);
 				if (DEBUG == true) {Serial.println(" DEBUG: SLOW LEFT");}
+				numberOfswings++;
 				break;
 			}
 
@@ -198,6 +214,7 @@ void seekTurn() {
 			else {
 				runMotors(3);
 				if (DEBUG == true) {Serial.println(" DEBUG: SLOW RIGHT");}
+				numberOfswings++;
 				break;
 			}
 		case S_SEEK_LEFT:
@@ -209,6 +226,7 @@ void seekTurn() {
 			else {
 				runMotors(2);
 				if (DEBUG == true) {Serial.println(" DEBUG: SEEK LEFT");}
+				numberOfswings++;
 				break;
 			}
 
@@ -221,9 +239,21 @@ void seekTurn() {
 			else {
 				runMotors(3);
 				if (DEBUG == true) {Serial.println(" DEBUG: SEEK RIGHT");}
+				numberOfswings++;
 				break;
 			}
 	}
+}
+
+void seekSpin() {
+	if(isSeekTimerExpired()) {
+		numberOfswings = 0;
+	}
+	else {
+		runMotors(2);
+		if (DEBUG == true) {Serial.println("DEBUG: SEEK TURN!");}
+	}
+
 }
 void setup(){
 	if(DEBUG == true) {
@@ -294,8 +324,16 @@ void loop(){
 			}
 
 			borderDetect();
-		//	runMotors(6);
-			seekTurn();
+			//	runMotors(6);
+			if (DEBUG == true) {Serial.print(" DEBUG:Number of swing:");}
+			if (DEBUG == true) {Serial.println(numberOfswings);}
+			if(numberOfswings == 6) {
+				startSeekTimer(2000);
+				seekSpin();
+			}
+			else{
+				seekTurn();
+			}
 
 			/*borderdetect
 			 * sensorcheck
