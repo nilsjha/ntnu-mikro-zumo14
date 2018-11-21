@@ -78,40 +78,34 @@ void runMotors(int Direction) {
 
 		case 2:
 
-			// motors.setSpeeds(0, 0); //swing right
+			 motors.setSpeeds(-200, 200); //swing right
 			break;
 
 		case 3:
-			//motors.setSpeeds(0, 0); //swing left
+			motors.setSpeeds(200, -200); //swing left
 			break;
 
 		case 4:
 
 			// if leftmost sensor detects line, reverse and turn to the right
-		//	motors.setSpeeds(-REVERSE_SPEED, -REVERSE_SPEED);
+			motors.setSpeeds(-REVERSE_SPEED, -REVERSE_SPEED);
 			delay(reverseDuration);
-		//	motors.setSpeeds(TURN_SPEED, -TURN_SPEED);
+			motors.setSpeeds(TURN_SPEED, -TURN_SPEED);
 			delay(turnDuration);
-		//	motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
+			motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
 			break;
 
 		case 5:
 
 			// if rightmost sensor detects line, reverse and turn to the left
-		//	motors.setSpeeds(-REVERSE_SPEED, -REVERSE_SPEED);
+			motors.setSpeeds(-REVERSE_SPEED, -REVERSE_SPEED);
 			delay(reverseDuration);
-		//	motors.setSpeeds(-TURN_SPEED, TURN_SPEED);
+			motors.setSpeeds(-TURN_SPEED, TURN_SPEED);
 			delay(turnDuration);
-		//	motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
+			motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
 			break;
 		case 6:
-			for (int i = 0; i < 400; i++) {
- 	                	 motors.setSpeeds(i,i);
-        	         	 Serial.println(i);
-                		  digitalWrite(13,HIGH);
-                 		 delay(50);
-                 	 	digitalWrite(13,LOW);
-			  }
+			  motors.setSpeeds(0,0); // STOP
 			  break;
 
 
@@ -242,8 +236,8 @@ void setup(){
 	// startbutton
 	pinMode(buttonPin, INPUT);
 	//servo
-	myservo.attach(6);                 //tells the servo object that it is plugged into pin 6
-	myservo.write(servoPosition = 20);
+	//myservo.attach(9); 
+	//myservo.write(servoPosition = 20);
 
 }
 void loop(){
@@ -260,7 +254,7 @@ void loop(){
 				digitalWrite(13,HIGH);
 				if (DEBUG == true) {Serial.println(" DEBUG: Button pressed!");}
 				delay(5000);
-				moveRamp(170);
+				//moveRamp(170);
 				state = SEARCH_PHASE;
 				startTimer(2000);
 			}
@@ -300,7 +294,7 @@ void loop(){
 			}
 
 			borderDetect();
-			runMotors(6);
+		//	runMotors(6);
 			seekTurn();
 
 			/*borderdetect
