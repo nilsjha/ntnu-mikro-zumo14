@@ -81,11 +81,11 @@ void runMotors(int Direction) {
 
 		case 2:
 
-			motors.setSpeeds(-300, 300); //swing right
+			motors.setSpeeds(100, 200); //swing right
 			break;
 
 		case 3:
-			motors.setSpeeds(300, -300); //swing left
+			motors.setSpeeds(200, 100); //swing left
 			break;
 
 		case 4:
@@ -108,7 +108,7 @@ void runMotors(int Direction) {
 			motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
 			break;
 		case 6:
-			motors.setSpeeds(0,0); // STOP
+			motors.setSpeeds(-300,300); // STOP
 			break;
 
 
@@ -176,6 +176,8 @@ bool isTimerExpired() {
 
 void startSeekTimer(unsigned long timeout) {
 	nextSeekTimeout = millis() + timeout;
+	if (DEBUG == true) {Serial.print(" DEBUG: SeekTimerTimeout ");}
+	if (DEBUG == true) {Serial.println(nextSeekTimeout);}
 }
 bool isSeekTimerExpired() {
 	bool statement;
@@ -184,6 +186,8 @@ bool isSeekTimerExpired() {
 	} else {
 		statement = false;
 	}
+	if (DEBUG == true) {Serial.print(" DEBUG: SeekTImerexpired: ");}
+	if (DEBUG == true) {Serial.println(statement);}
 	return statement;
 }
 void seekTurn() {
@@ -195,7 +199,7 @@ void seekTurn() {
 		case S_SEEK_S_LEFT:
 			if(isTimerExpired()) {
 				seekState = S_SEEK_S_RIGHT;
-				startTimer(seekIntervalRight);
+				startTimer(seekIntervalRightSlow);
 				break;
 			}
 			else {
@@ -220,7 +224,7 @@ void seekTurn() {
 		case S_SEEK_LEFT:
 			if(isTimerExpired()) {
 				seekState = S_SEEK_RIGHT;
-				startTimer(seekIntervalRightSlow);
+				startTimer(seekIntervalRight);
 				break;
 			}
 			else {
@@ -248,6 +252,7 @@ void seekTurn() {
 void seekSpin() {
 	if(isSeekTimerExpired()) {
 		numberOfswings = 0;
+		if (DEBUG == true) {Serial.println("DEBUG: SEEK RESET!");}
 	}
 	else {
 		runMotors(2);
@@ -327,11 +332,11 @@ void loop(){
 			//	runMotors(6);
 			if (DEBUG == true) {Serial.print(" DEBUG:Number of swing:");}
 			if (DEBUG == true) {Serial.println(numberOfswings);}
-			if(numberOfswings == 6) {
-				startSeekTimer(2000);
+			if(numberOfswings == 300) {
 				seekSpin();
 			}
 			else{
+				startSeekTimer(800);
 				seekTurn();
 			}
 
