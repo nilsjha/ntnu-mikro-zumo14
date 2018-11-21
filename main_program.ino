@@ -108,7 +108,7 @@ void runMotors(int Direction) {
 			motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
 			break;
 		case 6:
-			motors.setSpeeds(-300,300); // STOP
+			motors.setSpeeds(-300,300); // SPIN 360 
 			break;
 
 
@@ -191,8 +191,8 @@ bool isSeekTimerExpired() {
 	return statement;
 }
 void seekTurn() {
-	int seekIntervalLeft = 450;
-	int seekIntervalRight = 450;
+	int seekIntervalLeft = 400;
+	int seekIntervalRight = 400;
 	int seekIntervalLeftSlow = 100;
 	int seekIntervalRightSlow = 100;
 	switch(seekState) {
@@ -255,7 +255,7 @@ void seekSpin() {
 		if (DEBUG == true) {Serial.println("DEBUG: SEEK RESET!");}
 	}
 	else {
-		runMotors(2);
+		runMotors(6);
 		if (DEBUG == true) {Serial.println("DEBUG: SEEK TURN!");}
 	}
 
