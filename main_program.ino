@@ -56,6 +56,17 @@ ZumoReflectanceSensorArray sensors(QTR_NO_EMITTER_PIN);
 
 int numberOfswings = 0;
 
+// Sound Effects
+ZumoBuzzer buzzer;
+const char rhapsody[] PROGMEM = "O6 T40 L16 d#<b<f#<d#<f#<bd#f#"
+  "T80 c#<b-<f#<c#<f#<b-c#8"
+  "T180 d#b<f#d#f#>bd#f#c#b-<f#c#f#>b-c#8 c>c#<c#>c#<b>c#<c#>c#c>c#<c#>c#<b>c#<c#>c#"
+  "c>c#<c#>c#<b->c#<c#>c#c>c#<c#>c#<b->c#<c#>c#"
+  "c>c#<c#>c#f>c#<c#>c#c>c#<c#>c#f>c#<c#>c#"
+  "c>c#<c#>c#f#>c#<c#>c#c>c#<c#>c#f#>c#<c#>c#d#bb-bd#bf#d#c#b-ab-c#b-f#d#";
+// use V0 to suppress sound effect; v15 for max volume
+
+
 bool DEBUG = true;
 const int  DEBUG_DELAY = 500;
 
@@ -81,11 +92,11 @@ void runMotors(int Direction) {
 
 		case 2:
 
-			motors.setSpeeds(300, -25); //swing right
+			motors.setSpeeds(300, 220); //swing right
 			break;
 
 		case 3:
-			motors.setSpeeds(-25, 300); //swing left
+			motors.setSpeeds(220, 300); //swing left
 			break;
 
 		case 4:
@@ -108,7 +119,7 @@ void runMotors(int Direction) {
 			motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
 			break;
 		case 6:
-			motors.setSpeeds(-200,200); // SPIN 360 
+			motors.setSpeeds(-225,225); // SPIN 360 
 			break;
 
 
@@ -270,6 +281,7 @@ void setup(){
 	}
 	// startbutton
 	pinMode(buttonPin, INPUT);
+	buzzer.playMode(PLAY_AUTOMATIC);
 	//servo
 	//myservo.attach(9); 
 	//myservo.write(servoPosition = 20);
@@ -334,10 +346,12 @@ void loop(){
 			if (DEBUG == true) {Serial.println(numberOfswings);}
 			if(numberOfswings == 200) {
 				seekSpin();
+				  buzzer.playFromProgramSpace(rhapsody);
 			}
 			else{
-				startSeekTimer(650);
+				startSeekTimer(750);
 				seekTurn();
+
 			}
 
 			/*borderdetect
