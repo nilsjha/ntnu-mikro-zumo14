@@ -81,11 +81,11 @@ void runMotors(int Direction) {
 
 		case 2:
 
-			motors.setSpeeds(100, 200); //swing right
+			motors.setSpeeds(300, -25); //swing right
 			break;
 
 		case 3:
-			motors.setSpeeds(200, 100); //swing left
+			motors.setSpeeds(-25, 300); //swing left
 			break;
 
 		case 4:
@@ -108,7 +108,7 @@ void runMotors(int Direction) {
 			motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
 			break;
 		case 6:
-			motors.setSpeeds(-300,300); // SPIN 360 
+			motors.setSpeeds(-200,200); // SPIN 360 
 			break;
 
 
@@ -332,11 +332,11 @@ void loop(){
 			//	runMotors(6);
 			if (DEBUG == true) {Serial.print(" DEBUG:Number of swing:");}
 			if (DEBUG == true) {Serial.println(numberOfswings);}
-			if(numberOfswings == 300) {
+			if(numberOfswings == 200) {
 				seekSpin();
 			}
 			else{
-				startSeekTimer(800);
+				startSeekTimer(650);
 				seekTurn();
 			}
 
